@@ -2,7 +2,6 @@
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import postgres from 'postgres';
 import { z } from 'zod';
 
@@ -27,6 +26,7 @@ export type State = {
         status?: string[];
     };
     message?: string | null;
+    redirect?: string;
 };
 export async function createInvoice(prevState: State, formData: FormData) {
     const validatedFields = CreateInvoice.safeParse({
@@ -47,8 +47,12 @@ export async function createInvoice(prevState: State, formData: FormData) {
     try {
         await sql`INSERT INTO invoices (customer_id, amount, status, date) VALUES (${customerId}, ${amountInCents}, ${status}, ${date})`;
         revalidatePath('/dashboard/invoices');
-        redirect('/dashboard/invoices');
+        return {
+            message: 'Invoice created successfully.',
+            redirect: '/dashboard/invoices',
+        };
     } catch (error) {
+        console.error(error);
         return {
             message: 'Database Error: Failed to Create Invoice.',
         };
@@ -72,7 +76,10 @@ export async function updateInvoice(id: string, prevState: State, formData: Form
     try {
         await sql`UPDATE invoices SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status} WHERE id = ${id}`;
         revalidatePath('/dashboard/invoices');
-        redirect('/dashboard/invoices');
+        return {
+            message: 'Invoice updated successfully.',
+            redirect: '/dashboard/invoices',
+        };
     } catch (error) {
         return {
             message: 'Database Error: Failed to Update Invoice.',

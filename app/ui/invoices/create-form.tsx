@@ -9,13 +9,23 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useActionState, useEffect } from 'react';
 export default function Form({ customers }: { customers: CustomerField[] }) {
+  const router = useRouter();
   const initialState: State = {
     errors: {},
     message: null,
   };
   const [state, formAction] = useActionState(createInvoice, initialState);
+  
+  // 监听状态变化，处理重定向
+  useEffect(() => {
+    if (state.redirect) {
+      router.push(state.redirect);
+    }
+  }, [state.redirect, router]);
+  
   console.log(state);
   return (
     <form action={formAction}>

@@ -10,7 +10,8 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useActionState, useEffect } from 'react';
 export default function EditInvoiceForm({
   invoice,
   customers,
@@ -18,12 +19,20 @@ export default function EditInvoiceForm({
   invoice: InvoiceForm;
   customers: CustomerField[];
 }) {
+  const router = useRouter();
   const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
   const initialState: State = {
     errors: {},
     message: null,
   };
   const [state, formAction] = useActionState(updateInvoiceWithId, initialState);
+  
+  // 监听状态变化，处理重定向
+  useEffect(() => {
+    if (state.redirect) {
+      router.push(state.redirect);
+    }
+  }, [state.redirect, router]);
   return (
     <form action={formAction}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
